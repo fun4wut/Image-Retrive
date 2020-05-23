@@ -19,13 +19,13 @@ namespace Trainer
             // var pcaedData = pcaPipeline.Fit(data).Transform(data);
 
             var classifyPipeline = mlCtx.Transforms.Conversion.MapValueToKey("Label")
-                .Append(mlCtx.MulticlassClassification.Trainers.SdcaMaximumEntropy())
+                .Append(mlCtx.MulticlassClassification.Trainers.LbfgsMaximumEntropy())
                 .Append(mlCtx.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
             var model = classifyPipeline.Fit(data);
             var predEngine = mlCtx.Model.CreatePredictionEngine<PixelData, CategoryPrediction>(model);
             var prepro = new PreProcessor { preProcessType = PreProcessType.Pixel };
 
-            var single = prepro.ProcessPixelSingle("assets/001.ak47/001_0001.jpg");
+            var single = prepro.ProcessPixelSingle("assets/001.ak47/001_0010.jpg");
             System.Console.WriteLine(predEngine.Predict(single).category);
         }
     }

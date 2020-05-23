@@ -19,17 +19,17 @@ namespace Preprocess
     }
 
     public class HistogramData : IImageData
-    { 
+    {
         [LoadColumn(0)] public string Name {get; set;}
-        [LoadColumn(1)] public string Category {get; set;}
-        [LoadColumn(2, 81)][VectorType(80)] public float[] Values {get; set;}
+        [ColumnName("Label")][LoadColumn(1)] public string Category {get; set;}
+        [ColumnName("Features")][LoadColumn(2, 81)][VectorType(80)] public float[] Values {get; set;}
     }
 
     public class PixelData : IImageData
     {
         [LoadColumn(0)] public string Name {get; set;}
         [ColumnName("Label")][LoadColumn(1)] public string Category {get; set;}
-        [ColumnName("Features")][LoadColumn(2, 257)][VectorType(256)] public float[] Values {get; set;}
+        [ColumnName("Features")][LoadColumn(2, 10001)][VectorType(10000)] public float[] Values {get; set;}
     }
 
     public class PreProcessor
@@ -43,7 +43,7 @@ namespace Preprocess
             var values = new float[80];
             using (var img = Image.Load<Rgb24>(path))
             {
-                Resize(img);
+                Resize(img, 256);
                 for (int i = 0; i < img.Height; ++i)
                 {
                     var row = img.GetPixelRowSpan(i);
@@ -60,10 +60,10 @@ namespace Preprocess
 
         public PixelData ProcessPixelSingle(string path, string category = null)
         {
-            var values = new float[65536];
+            var values = new float[10000];
             using (var img = Image.Load<Rgb24>(path))
             {
-                Resize(img);
+                Resize(img, 100);
                 for (int i = 0; i < img.Height; ++i)
                 {
                     var row = img.GetPixelRowSpan(i);
