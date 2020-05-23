@@ -1,28 +1,42 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using static Utils.PixelUtils;
 using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.ML.Data;
+using static Utils.PixelUtils;
+using static Preprocess.ResizeProcessor;
 
-#nullable enable
 namespace Preprocess
 {
-    public class ImageData
-    { 
-        [LoadColumn(0)] public string name = "";
-        [LoadColumn(1)] public string category = "";
-        [LoadColumn(2, 81)][VectorType(80)] public int[] values = new int[80];
+
+   public enum PreProcessType{ Histogram, Pixel }
+    public interface IImageData
+    {
+        string Name {get;set;}
+        string Category {get;set;}
+        int[] Values {get; set;}
     }
 
-    public static class ImageProcessor
+    public class HistogramData : IImageData
+    { 
+        [LoadColumn(0)] public string Name {get; set;}
+        [LoadColumn(1)] public string Category {get; set;}
+        [LoadColumn(2, 81)][VectorType(80)] public int[] Values {get; set;}
+    }
+
+    public class PreProcessor
     {
-        public static ImageData ProcessSingle(string path, string? category)
+        public PreProcessType preProcessType;
+        
+        List<IImageData> totalList = new List<IImageData>();
+
+        public HistogramData ProcessSingle(string path, string category)
         {
             var values = new int[80];
             using (var img = Image.Load<Rgb24>(path))
             {
+                Resize(img);
                 for (int i = 0; i < img.Height; ++i)
                 {
                     var row = img.GetPixelRowSpan(i);
@@ -34,25 +48,31 @@ namespace Preprocess
                     }
                 }
             }
-            return new ImageData { name = path, values = values, category = category ?? "None" };
+            return new HistogramData { Name = path, Values = values, Category = category ?? "None" };
         }
 
-        public static List<ImageData> ProcessFolder(string path)
+        public List<IImageData> ProcessFolder(string path)
         {
             string category = path.Split('.')[1];
-            var list = new List<ImageData>();
+            var list = new List<IImageData>();
 
-            Parallel.ForEach(Directory.GetFiles(path), _ => list.Add(ProcessSingle(_, category)));
+            Parallel.ForEach(Directory.GetFiles(path), item => list.Add(ProcessSingle(item, category)));
             System.Console.WriteLine($"{path} done");
             return list;
         }
 
-        public static void Write2CSV(List<ImageData> datas, string path)
+        public List<IImageData> ProcessFolders(string[] paths)
+        {
+            Parallel.ForEach(paths, item => totalList.AddRange(ProcessFolder(item)));
+            return totalList;
+        }
+
+        public void Write2CSV(string path)
         {
             using (var writer = new StreamWriter(path))
             {
-                datas.ForEach(item => writer.WriteLine(
-                    $"{item.name},{item.category},{string.Join(',', item.values)}"
+                totalList.ForEach(item => writer.WriteLine(
+                    $"{item.Name},{item.Category},{string.Join(',', item.Values)}"
                 ));
             }
         }

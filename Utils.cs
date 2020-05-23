@@ -36,7 +36,7 @@ namespace Utils
             for (int i = 0; i < vlist.Length; i++) if (v <= vlist[i]) { v = i; break; }
             return (int)(9 * h + 3 * s + v);
         }
+    
     }
-
 
 }
