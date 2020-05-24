@@ -12,9 +12,9 @@ namespace img_search
         {
             long now = DateTimeOffset.Now.ToUnixTimeSeconds();
 
-            var preprocessor = new PreProcessor { preProcessType = PreProcessType.Pixel };
+            var preprocessor = new PreProcessor { preProcessType = PreProcessType.Histogram };
             preprocessor.ProcessFolders(Directory.GetDirectories("assets"));
-            preprocessor.Write2CSV("pixel.csv");
+            preprocessor.Write2CSV("demo.csv");
 
             // Train("pixel.csv");
 

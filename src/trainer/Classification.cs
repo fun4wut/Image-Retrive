@@ -16,10 +16,10 @@ namespace Trainer
             var data = mlCtx.Data.LoadFromTextFile<PixelData>(path, separatorChar: ',');
 
 
-            var classifyPipeline = mlCtx.Transforms.Conversion.MapValueToKey("Label")
+            var pipeline = mlCtx.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlCtx.MulticlassClassification.Trainers.LbfgsMaximumEntropy())
                 .Append(mlCtx.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
-            var model = classifyPipeline.Fit(data);
+            var model = pipeline.Fit(data);
             var predEngine = mlCtx.Model.CreatePredictionEngine<PixelData, CategoryPrediction>(model);
             var prepro = new PreProcessor { preProcessType = PreProcessType.Pixel };
 
