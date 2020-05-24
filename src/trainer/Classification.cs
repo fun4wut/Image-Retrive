@@ -10,7 +10,7 @@ namespace Trainer
 
     public class ClassificationTrainer
     {
-        public static void Train(string path)
+        public static void TrainAndSave(string path, string save)
         {
             var mlCtx = new MLContext(0);
             var data = mlCtx.Data.LoadFromTextFile<PixelData>(path, separatorChar: ',');
@@ -20,11 +20,8 @@ namespace Trainer
                 .Append(mlCtx.MulticlassClassification.Trainers.LbfgsMaximumEntropy())
                 .Append(mlCtx.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
             var model = pipeline.Fit(data);
-            var predEngine = mlCtx.Model.CreatePredictionEngine<PixelData, CategoryPrediction>(model);
-            var prepro = new PreProcessor { preProcessType = PreProcessType.Pixel };
 
-            var single = prepro.ProcessPixelSingle("assets/001.ak47/001_0010.jpg");
-            System.Console.WriteLine(predEngine.Predict(single).category);
+            mlCtx.Model.Save(model, data.Schema, save);
         }
     }
 }

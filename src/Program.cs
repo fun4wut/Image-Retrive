@@ -3,7 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Preprocess;
-using static Trainer.ClassificationTrainer;
+using Trainer;
 namespace img_search
 {
     class Program
@@ -12,11 +12,13 @@ namespace img_search
         {
             long now = DateTimeOffset.Now.ToUnixTimeSeconds();
 
-            var preprocessor = new PreProcessor { preProcessType = PreProcessType.Histogram };
-            preprocessor.ProcessFolders(Directory.GetDirectories("assets"));
-            preprocessor.Write2CSV("demo.csv");
+            // var preprocessor = new PreProcessor { preProcessType = PreProcessType.Histogram };
+            // preprocessor.ProcessFolders(Directory.GetDirectories("assets"));
+            // preprocessor.Write2CSV("demo.csv");
 
-            // Train("pixel.csv");
+            // ClassificationTrainer.TrainAndSave("pixel.csv", "classify.zip");
+
+            ClusterTrainer.TrainAndSave("pixel.csv", "cluster.zip");
 
             Console.WriteLine(DateTimeOffset.Now.ToUnixTimeSeconds() - now);
         }
