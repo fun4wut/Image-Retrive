@@ -15,8 +15,6 @@ namespace Trainer
             var mlCtx = new MLContext(0);
             var data = mlCtx.Data.LoadFromTextFile<PixelData>(path, separatorChar: ',');
 
-            // var pcaPipeline = mlCtx.AnomalyDetection.Trainers.RandomizedPca(rank: 1, ensureZeroMean: false);
-            // var pcaedData = pcaPipeline.Fit(data).Transform(data);
 
             var classifyPipeline = mlCtx.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlCtx.MulticlassClassification.Trainers.LbfgsMaximumEntropy())

@@ -12,11 +12,11 @@ namespace img_search
         {
             long now = DateTimeOffset.Now.ToUnixTimeSeconds();
 
-            // var preprocessor = new PreProcessor { preProcessType = PreProcessType.Pixel };
-            // preprocessor.ProcessFolders(Directory.GetDirectories("assets"));
-            // preprocessor.Write2CSV("pixel.csv");
+            var preprocessor = new PreProcessor { preProcessType = PreProcessType.Pixel };
+            preprocessor.ProcessFolders(Directory.GetDirectories("assets"));
+            preprocessor.Write2CSV("pixel.csv");
 
-            Train("pixel.csv");
+            // Train("pixel.csv");
 
             Console.WriteLine(DateTimeOffset.Now.ToUnixTimeSeconds() - now);
         }

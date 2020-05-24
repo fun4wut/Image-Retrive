@@ -1,6 +1,7 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.IO;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.ML.Data;
@@ -41,40 +42,14 @@ namespace Preprocess
         public HistogramData ProcessHistogramSingle(string path)
         {
             var values = new float[80];
-            using (var img = Image.Load<Rgb24>(path))
-            {
-                Resize(img, 256);
-                for (int i = 0; i < img.Height; ++i)
-                {
-                    var row = img.GetPixelRowSpan(i);
-                    for (int j = 0; j < img.Width; j++)
-                    {
-                        var pixel = RGB2HSV(row[j]);
-                        var value = Quantilize(pixel);
-                        values[value]++;
-                    }
-                }
-            }
+            IterateImg(path, 256, (val, i, j) => values[val]++);
             return new HistogramData { Name = path, Values = values, Category = "None" };
         }
 
         public PixelData ProcessPixelSingle(string path, string category = null)
         {
             var values = new float[10000];
-            using (var img = Image.Load<Rgb24>(path))
-            {
-                Resize(img, 100);
-                for (int i = 0; i < img.Height; ++i)
-                {
-                    var row = img.GetPixelRowSpan(i);
-                    for (int j = 0; j < img.Width; j++)
-                    {
-                        var pixel = RGB2HSV(row[j]);
-                        var value = Quantilize(pixel);
-                        values[i * img.Width + j] = value;
-                    }
-                }
-            }
+            IterateImg(path, 100, (val, i, j) => values[i * 100 + j] = val);
             return new PixelData { Name = path, Values = values, Category = category ?? "None" };
         }
 
@@ -89,7 +64,7 @@ namespace Preprocess
                     list.Add(ProcessPixelSingle(item, category));
                 }
             });
-            System.Console.WriteLine($"{path} done");
+            Console.WriteLine($"{path} done");
             return list;
         }
 
@@ -109,5 +84,22 @@ namespace Preprocess
             }
         }
 
+        public static void IterateImg(string path, int size, Action<int, int, int> func)
+        {
+            using (var img = Image.Load<Rgb24>(path))
+            {
+                Resize(img, size);
+                for (int i = 0; i < img.Height; ++i)
+                {
+                    var row = img.GetPixelRowSpan(i);
+                    for (int j = 0; j < img.Width; j++)
+                    {
+                        var pixel = RGB2HSV(row[j]);
+                        var value = Quantilize(pixel);
+                        func(value, i, j);
+                    }
+                }
+            }
+        }
     }
 }
