@@ -1,4 +1,5 @@
 ﻿using System;
+using Utils;
 using System.IO;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,18 +11,18 @@ namespace img_search
     {
         static void Main(string[] args)
         {
-            long now = DateTimeOffset.Now.ToUnixTimeSeconds();
+            Timer.Reset();
 
-            // var preprocessor = new PreProcessor { preProcessType = PreProcessType.Histogram };
-            // preprocessor.ProcessFolders(Directory.GetDirectories("assets"));
-            // preprocessor.Write2CSV("demo.csv");
+            var preprocessor = new PreProcessor { preProcessType = PreProcessType.Histogram };
+            preprocessor.ProcessFolders(Directory.GetDirectories("assets"));
+            preprocessor.Write2CSV("demo.csv");
 
-            ClassificationTrainer.TrainAndSave("pixel.csv", "classify.zip");
+            // ClassificationTrainer.TrainAndSave("pixel.csv", "classify.zip");
 
             // ClusterTrainer.TrainAndSave("pixel.csv", "cluster.zip");
 
             Console.Write("Time used:   ");
-            Console.WriteLine(DateTimeOffset.Now.ToUnixTimeSeconds() - now);
+            Console.WriteLine(Timer.Stop());
         }
     }
 }

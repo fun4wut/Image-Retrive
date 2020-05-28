@@ -2,42 +2,21 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.IO;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.ML.Data;
 using static Utils.PixelUtils;
 using static Preprocess.ResizeProcessor;
 
 namespace Preprocess
 {
 
-   public enum PreProcessType{ Histogram, Pixel }
-    public interface IImageData
-    {
-        string Name {get;set;}
-        string Category {get;set;}
-        float[] Values {get; set;}
-    }
-
-    public class HistogramData : IImageData
-    {
-        [LoadColumn(0)] public string Name {get; set;}
-        [ColumnName("Label")][LoadColumn(1)] public string Category {get; set;}
-        [ColumnName("Features")][LoadColumn(2, 81)][VectorType(80)] public float[] Values {get; set;}
-    }
-
-    public class PixelData : IImageData
-    {
-        [LoadColumn(0)] public string Name {get; set;}
-        [ColumnName("Label")][LoadColumn(1)] public string Category {get; set;}
-        [ColumnName("Features")][LoadColumn(2, 10001)][VectorType(10000)] public float[] Values {get; set;}
-    }
+    public enum PreProcessType{ Histogram, Pixel, Naive }
 
     public class PreProcessor
     {
         public PreProcessType preProcessType;
-        
-        List<IImageData> totalList = new List<IImageData>();
+        List<IImageData> totalList = new List<IImageData>(4000);
 
         public HistogramData ProcessHistogramSingle(string path)
         {
@@ -53,15 +32,31 @@ namespace Preprocess
             return new PixelData { Name = path, Values = values, Category = category ?? "None" };
         }
 
+        public PixelData ProcessNaiveSingle(string path, string category = null)
+        {
+            return new PixelData { Name = path, Values = new float[]{}, Category = category ?? "None" };
+        }
+
         public List<IImageData> ProcessFolder(string path)
         {
             string category = path.Split('.')[1];
-            var list = new List<IImageData>();
+            var list = new List<IImageData>(400);
+            var lockObj = new Object();
             Parallel.ForEach(Directory.GetFiles(path), item => {
-                if (preProcessType == PreProcessType.Histogram) {
-                    list.Add(ProcessHistogramSingle(item));
-                } else {
-                    list.Add(ProcessPixelSingle(item, category));
+                lock (lockObj)
+                {
+                    switch (preProcessType)
+                    {
+                        case PreProcessType.Histogram:
+                            list.Add(ProcessHistogramSingle(item));
+                            break;
+                        case PreProcessType.Pixel:
+                            list.Add(ProcessPixelSingle(item, category));
+                            break;
+                        case PreProcessType.Naive:
+                            list.Add(ProcessNaiveSingle(item, category));
+                            break;
+                    }
                 }
             });
             Console.WriteLine($"{path} done");
@@ -70,7 +65,7 @@ namespace Preprocess
 
         public List<IImageData> ProcessFolders(string[] paths)
         {
-            Parallel.ForEach(paths, item => totalList.AddRange(ProcessFolder(item)));
+            Array.ForEach(paths, item => totalList.AddRange(ProcessFolder(item)));
             return totalList;
         }
 
@@ -82,6 +77,17 @@ namespace Preprocess
                     $"{item.Name},{item.Category},{string.Join(',', item.Values)}"
                 ));
             }
+        }
+
+        public static void WriteSimpleRelation(string path, string dir)
+        {
+            var list = new List<NaiveData>();
+            Parallel.ForEach(Directory.GetDirectories(dir), sub => {
+                foreach (var item in Directory.GetDirectories(sub))
+                {
+                    list.Add(new NaiveData { Name = item, Category = sub.Split('.')[1] });
+                }
+            });
         }
 
         public static void IterateImg(string path, int size, Action<int, int, int> func)
