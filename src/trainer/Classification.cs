@@ -1,6 +1,8 @@
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Preprocess;
+using System.Linq;
+using System;
 namespace Trainer
 {
     public class CategoryPrediction
@@ -19,7 +21,25 @@ namespace Trainer
             var pipeline = mlCtx.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlCtx.MulticlassClassification.Trainers.LbfgsMaximumEntropy())
                 .Append(mlCtx.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
-            var model = pipeline.Fit(data);
+
+            var cvRes = mlCtx.MulticlassClassification.CrossValidate(data, pipeline, 2);
+
+            var paramRes = cvRes.Select(fold => fold.Metrics);
+            
+            Console.WriteLine("Cross Validate Result(TopK Accuracy, Macro Accuracy):");
+
+            foreach (var item in paramRes)
+            {
+                Console.WriteLine($"{item.TopKAccuracy}\t{item.MacroAccuracy}");
+            }
+            
+            
+            var model = cvRes
+                .OrderByDescending(_ => _.Metrics.TopKAccuracy)
+                .Select(_ => _.Model)
+                .ToArray()[0];
+
+            // var model = pipeline.Fit(data);
 
             mlCtx.Model.Save(model, data.Schema, save);
         }
