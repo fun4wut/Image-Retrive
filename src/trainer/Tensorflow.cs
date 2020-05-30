@@ -49,15 +49,16 @@ namespace Trainer
                 .Append(mlCtx.Transforms.Conversion.MapKeyToValue("PredictedLabel"))
                 .AppendCacheCheckpoint(mlCtx);
 
-                var cvRes = mlCtx.MulticlassClassification.CrossValidate(data, pipeline, 2);
+                var cvRes = mlCtx.MulticlassClassification.CrossValidate(data, pipeline, 3);
                 
+                Console.WriteLine("Cross Validate Result:(Macro Accuracy)");
                 foreach (var item in cvRes)
                 {
-                    Console.WriteLine($"{item.Metrics.TopKAccuracy}");
+                    Console.WriteLine($"{item.Metrics.MacroAccuracy}");
                 }
             
                 var model = cvRes
-                    .OrderByDescending(fold => fold.Metrics.TopKAccuracy)
+                    .OrderByDescending(fold => fold.Metrics.MacroAccuracy)
                     .Select(_ => _.Model)
                     .ToArray()[0];
                 
