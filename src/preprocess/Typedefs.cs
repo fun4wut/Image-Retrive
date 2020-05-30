@@ -19,7 +19,7 @@ namespace Preprocess
     {
         [LoadColumn(0)] public string Name {get;set;}
         [ColumnName("Label")][LoadColumn(1)] public string Category {get;set;}
-        public float[] Values {get; set;} // dummy member
+        [LoadColumn(2)] public float[] Values {get; set;} // dummy member
     }
 
     public class PixelData : IImageData

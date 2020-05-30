@@ -17,6 +17,7 @@ namespace Trainer
             var mlCtx = new MLContext(0);
             var data = mlCtx.Data.LoadFromTextFile<PixelData>(path, separatorChar: ',');
 
+            data = mlCtx.Data.ShuffleRows(data);
 
             var pipeline = mlCtx.Transforms.Conversion.MapValueToKey("Label")
                 .Append(mlCtx.MulticlassClassification.Trainers.LbfgsMaximumEntropy())
