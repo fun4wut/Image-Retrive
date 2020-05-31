@@ -23,20 +23,20 @@ namespace Trainer
                 .Append(mlCtx.MulticlassClassification.Trainers.LbfgsMaximumEntropy())
                 .Append(mlCtx.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
-            var cvRes = mlCtx.MulticlassClassification.CrossValidate(data, pipeline, 2);
+            var cvRes = mlCtx.MulticlassClassification.CrossValidate(data, pipeline, 3);
 
             var paramRes = cvRes.Select(fold => fold.Metrics);
             
-            Console.WriteLine("Cross Validate Result(TopK Accuracy, Macro Accuracy):");
+            Console.WriteLine("Cross Validate Result(Macro Accuracy):");
 
             foreach (var item in paramRes)
             {
-                Console.WriteLine($"{item.TopKAccuracy}\t{item.MacroAccuracy}");
+                Console.WriteLine($"{item.MacroAccuracy}");
             }
             
             
             var model = cvRes
-                .OrderByDescending(_ => _.Metrics.TopKAccuracy)
+                .OrderByDescending(_ => _.Metrics.MacroAccuracy)
                 .Select(_ => _.Model)
                 .ToArray()[0];
 

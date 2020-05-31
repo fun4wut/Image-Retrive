@@ -16,7 +16,9 @@ namespace Preprocess
     public class PreProcessor
     {
         public PreProcessType preProcessType;
-        List<IImageData> totalList = new List<IImageData>(4000);
+        List<IImageData> totalList = new List<IImageData>(40000);
+
+        public List<IImageData> TotalList { get => totalList; }
 
         public HistogramData ProcessHistogramSingle(string path)
         {

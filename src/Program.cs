@@ -21,7 +21,9 @@ namespace img_search
 
             // ClusterTrainer.TrainAndSave("pixel.csv", "cluster.zip");
 
-            TFTrainer.TrainAndSave("naive.csv", "tf.zip");
+            // TFTrainer.TrainAndSave("naive.csv", "tf.zip");
+
+            TFTrainer.ProcessFeatures("naive.csv", "tf_feat.csv");
 
             Console.Write("Time used:   ");
             Console.WriteLine(Timer.Stop());
