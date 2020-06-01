@@ -12,9 +12,11 @@ namespace img_search
         {
             Timer.Reset();
 
-            IPreprocessable<TFData> preprocessor = new TFPreprocessor();
+            // IPreprocessable<TFData> preprocessor = new TFPreprocessor();
+            IPreprocessable<HistogramData> preprocessor = new HistogramPreprocessor();
             preprocessor.ProcessFolders(Directory.GetDirectories("assets"));
-            preprocessor.Write2CSV("tf_feat.csv");
+            preprocessor.AfterAdd();
+            preprocessor.Write2CSV("histogram_feat.csv");
             // ClassificationTrainer.TrainAndSave("pixel.csv", "classify.zip");
 
             // ClusterTrainer.TrainAndSave("pixel.csv", "cluster.zip");

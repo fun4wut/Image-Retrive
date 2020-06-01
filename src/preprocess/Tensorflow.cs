@@ -36,17 +36,16 @@ namespace Preprocess
                 ));
         }
 
-        public List<TFData> AfterAdd()
+        public void AfterAdd()
         {
             var data = mlCtx.Data.LoadFromEnumerable<TFData>(totalList);
             data = mlCtx.Data.ShuffleRows(data);
             var pipeline = GenBasePipeline();
             var model = pipeline.Fit(data);
             var transformed = model.Transform(data);
-            
-            var outScores = mlCtx.Data.CreateEnumerable<TFData>(transformed, reuseRowObject: false);
 
-            return outScores.ToList();
+            totalList = mlCtx.Data.CreateEnumerable<TFData>(transformed, reuseRowObject: false).ToList();
+            
         }
 
         public List<TFData> ProcessFolder(string path)
@@ -55,7 +54,7 @@ namespace Preprocess
             var lockObj = new Object();
             var list = new List<TFData>();
             Parallel.ForEach(Directory.GetFiles(path), item => {
-                var data =  new TFData { Name = path, Values = new float[]{}, Category = category ?? "None" };
+                var data =  new TFData { Name = item, Values = new float[]{}, Category = category ?? "None" };
                 lock (lockObj) { list.Add(data); }
             });
             Console.WriteLine($"{path} done");

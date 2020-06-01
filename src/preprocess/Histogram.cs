@@ -22,29 +22,14 @@ namespace Preprocess
             var list = new List<HistogramData>();
             Parallel.ForEach(Directory.GetFiles(path), item => {
                 var values = new float[80];
-                IterateImg(path, 256, (val, i, j) => values[val]++);
-                var data =  new HistogramData { Name = path, Values = values, Category = "None" };
+                IterateImg(item, 224, (val, i, j) => values[val]++);
+                var data =  new HistogramData { Name = item, Values = values, Category = "None" };
                 lock (lockObj) { list.Add(data); }
             });
             Console.WriteLine($"{path} done");
             return list;
         }
 
-        
-        public List<TFData> ProcessFolderTF(string path)
-        {
-            string category = path.Split('.')[1];
-            var lockObj = new Object();
-            var list = new List<TFData>();
-            Parallel.ForEach(Directory.GetFiles(path), item => {
-                var values = new float[80];
-                IterateImg(path, 256, (val, i, j) => values[val]++);
-                var data =  new TFData { Name = path, Values = values, Category = category ?? "None" };
-                lock (lockObj) { list.Add(data); }
-            });
-            Console.WriteLine($"{path} done");
-            return list;
-        }
 
         static void IterateImg(string path, int size, Action<int, int, int> func)
         {
