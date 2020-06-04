@@ -2,27 +2,39 @@
 using Utils;
 using System.IO;
 using Preprocess;
-using Trainer;
-
+using System.Threading.Tasks;
+using Database;
 namespace img_search
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Timer.Reset();
 
-            // IPreprocessable<TFData> preprocessor = new TFPreprocessor();
-            IPreprocessable<HistogramData> preprocessor = new HistogramPreprocessor();
-            preprocessor.ProcessFolders(Directory.GetDirectories("assets"));
+            IPreprocessable preprocessor = new TFPreprocessor();
+            // IPreprocessable preprocessor = new HistogramPreprocessor();
+            // preprocessor.ProcessFolders(Directory.GetDirectories("assets"));
+            var single = preprocessor.PreprocessSingle("assets/007.bat/007_0001.jpg");
+            preprocessor.TotalList.Add(single);
             preprocessor.AfterAdd();
-            preprocessor.Write2CSV("histogram_feat.csv");
-            // ClassificationTrainer.TrainAndSave("pixel.csv", "classify.zip");
+            var dbOperator = new DBOperator(VectorType.TF);
 
-            // ClusterTrainer.TrainAndSave("pixel.csv", "cluster.zip");
+            if (await dbOperator.CheckExists())
+            {
+                await dbOperator.CreateCollection();
+            }
 
-            // TFTrainer.TrainAndSave("naive.csv", "tf.zip");
+            // await dbOperator.InsertVectors(preprocessor.TotalList);
 
+            var res = await dbOperator.Search(preprocessor.TotalList[0], 10);
+
+            Console.WriteLine($"Test Image: {single.Name}\n\nAnswer:");
+
+            foreach (var item in res)
+            {
+                Console.WriteLine($"{item.path}\t{item.distance}");
+            }
 
             Console.Write("Time used:   ");
             Console.WriteLine(Timer.Stop());

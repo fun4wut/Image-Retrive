@@ -2,38 +2,33 @@ using Microsoft.ML.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
+
 namespace Preprocess
 {
-    public interface IImageData
+    public class ImageVector
     {
-        string Name {get;set;}
-        string Category {get;set;}
-        float[] Values {get; set;}
+        public string Name {get;set;}
+        [ColumnName("Label")] public string Category = "None";
+        [ColumnName("softmax2_pre_activation")][VectorType(1008)] public float[] Values {get; set;}
     }
 
-    public class HistogramData : IImageData
+    public interface IPreprocessable
     {
-        [LoadColumn(0)] public string Name {get; set;}
-        [ColumnName("Label")][LoadColumn(1)] public string Category {get; set;}
-        [ColumnName("Features")][LoadColumn(2, 81)][VectorType(80)] public float[] Values {get; set;}
-    }
-
-    public class TFData : IImageData
-    {
-        [LoadColumn(0)] public string Name {get;set;}
-        [ColumnName("Label")][LoadColumn(1)] public string Category {get;set;}
-
-        [ColumnName("softmax2_pre_activation")]
-        [LoadColumn(2, 1009)] 
-        [VectorType(1008)]
-        public float[] Values {get; set;} // dummy member
-    }
-
-    public interface IPreprocessable<R> where R : IImageData
-    {
-        List<R> TotalList {get;}
-        List<R> ProcessFolder(string dir);
-        List<R> ProcessFolders(string[] dirs)
+        List<ImageVector> TotalList {get;}
+        ImageVector PreprocessSingle(string path);
+        List<ImageVector> ProcessFolder(string dir)
+        {
+            var lockObj = new Object();
+            var list = new List<ImageVector>();
+            Parallel.ForEach(Directory.GetFiles(dir), item => {
+                var data = PreprocessSingle(item);
+                lock (lockObj) { list.Add(data); }
+            });
+            Console.WriteLine($"{dir} done");
+            return list;
+        }
+        List<ImageVector> ProcessFolders(string[] dirs)
         {
             Array.ForEach(dirs, item => TotalList.AddRange(ProcessFolder(item)));
             return TotalList;
@@ -48,7 +43,7 @@ namespace Preprocess
                 ));
             }
         }
-        void Write2DB();
+        // void Write2DB();
     }
 
 

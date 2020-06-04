@@ -9,15 +9,14 @@ using System.Threading.Tasks;
 
 namespace Preprocess
 {
-    public class TFPreprocessor : IPreprocessable<TFData>
+    public class TFPreprocessor : IPreprocessable
     {
-        static readonly HttpClient client = new HttpClient();
         static string PWD = Environment.CurrentDirectory;
         static string PB_PATH = "inception5h/tensorflow_inception_graph.pb";
         static string SOFT2_NAME = "softmax2_pre_activation";
         private static MLContext mlCtx = new MLContext();
-        List<TFData> totalList = new List<TFData>(40000);
-        public List<TFData> TotalList { get => totalList; }
+        List<ImageVector> totalList = new List<ImageVector>(40000);
+        public List<ImageVector> TotalList { get => totalList;}
         private static EstimatorChain<TensorFlowTransformer> GenBasePipeline()
         {
             return mlCtx.Transforms.LoadImages("input", PWD, "Name")
@@ -40,28 +39,17 @@ namespace Preprocess
 
         public void AfterAdd()
         {
-            var data = mlCtx.Data.LoadFromEnumerable<TFData>(totalList);
+            var data = mlCtx.Data.LoadFromEnumerable<ImageVector>(totalList);
             data = mlCtx.Data.ShuffleRows(data);
             var pipeline = GenBasePipeline();
             var model = pipeline.Fit(data);
             var transformed = model.Transform(data);
 
-            totalList = mlCtx.Data.CreateEnumerable<TFData>(transformed, reuseRowObject: false).ToList();
+            totalList = mlCtx.Data.CreateEnumerable<ImageVector>(transformed, reuseRowObject: false).ToList();
             
         }
 
-        public List<TFData> ProcessFolder(string path)
-        {
-            string category = path.Split('.')[1];
-            var lockObj = new Object();
-            var list = new List<TFData>();
-            Parallel.ForEach(Directory.GetFiles(path), item => {
-                var data =  new TFData { Name = item, Values = new float[]{}, Category = category ?? "None" };
-                lock (lockObj) { list.Add(data); }
-            });
-            Console.WriteLine($"{path} done");
-            return list;
-        }
+        public ImageVector PreprocessSingle(string path) => new ImageVector { Name = path, Values = new float[]{} };
 
         private struct InceptionSettings
         {

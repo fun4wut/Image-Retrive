@@ -9,27 +9,18 @@ using static Preprocess.ResizeProcessor;
 
 namespace Preprocess
 {
-    public class HistogramPreprocessor : IPreprocessable<HistogramData>
+    public class HistogramPreprocessor : IPreprocessable
     {
-        List<HistogramData> totalList = new List<HistogramData>(40000);
+        List<ImageVector> totalList = new List<ImageVector>(40000);
 
-        public List<HistogramData> TotalList { get => totalList; }
+        public List<ImageVector> TotalList { get => totalList; }
 
-        public List<HistogramData> ProcessFolder(string path)
+        public ImageVector PreprocessSingle(string path)
         {
-            string category = path.Split('.')[1];
-            var lockObj = new Object();
-            var list = new List<HistogramData>();
-            Parallel.ForEach(Directory.GetFiles(path), item => {
-                var values = new float[80];
-                IterateImg(item, 224, (val, i, j) => values[val]++);
-                var data =  new HistogramData { Name = item, Values = values, Category = "None" };
-                lock (lockObj) { list.Add(data); }
-            });
-            Console.WriteLine($"{path} done");
-            return list;
+            var values = new float[80];
+            IterateImg(path, 224, (val, i, j) => values[val]++);
+            return new ImageVector { Name = path, Values = values };
         }
-
 
         static void IterateImg(string path, int size, Action<int, int, int> func)
         {

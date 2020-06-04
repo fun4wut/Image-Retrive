@@ -8,9 +8,30 @@ namespace Dto
 
     public class ReqInsertVector
     {
-        
+        public float[][] vectors {get; set;}
     }
 
+    public class ResIds
+    {
+        public string[] ids {get; set;}
+    }
+
+    public class ReqSearch
+    {
+        public int topk {get; set;}
+        public float[][] vectors {get; set;}
+        public object @params = new { nprobe = 300 };
+    }
+    public class ResSearch
+    {
+        public int num {get; set;}
+        public SingleResult[][] results {get; set;} 
+    }
+    public class SingleResult
+    {
+        public string id {get; set;}
+        public string distance {get; set;}
+    }
     public class ResBase
     {
         public string message {get; set;}
