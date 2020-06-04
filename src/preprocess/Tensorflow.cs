@@ -6,10 +6,12 @@ using Microsoft.ML;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Data;
 using System.Threading.Tasks;
+
 namespace Preprocess
 {
     public class TFPreprocessor : IPreprocessable<TFData>
     {
+        static readonly HttpClient client = new HttpClient();
         static string PWD = Environment.CurrentDirectory;
         static string PB_PATH = "inception5h/tensorflow_inception_graph.pb";
         static string SOFT2_NAME = "softmax2_pre_activation";

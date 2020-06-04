@@ -48,6 +48,7 @@ namespace Preprocess
                 ));
             }
         }
+        void Write2DB();
     }
 
 
