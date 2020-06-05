@@ -20,12 +20,14 @@ namespace Dto
     {
         public int topk {get; set;}
         public float[][] vectors {get; set;}
-        public object @params = new { nprobe = 300 };
+        public object @params {get; set;}
+
     }
+
     public class ResSearch
     {
         public int num {get; set;}
-        public SingleResult[][] results {get; set;} 
+        public SingleResult[][] result {get; set;} 
     }
     public class SingleResult
     {

@@ -7,7 +7,7 @@ using Dto;
 using Preprocess;
 using StackExchange.Redis;
 using RestSharp.Serializers.SystemTextJson;
-
+using System.Text.Json;
 namespace Database
 {
     public enum VectorType { Histogram, TF }
@@ -31,6 +31,7 @@ namespace Database
         {
             this.isTFVector = vecType == VectorType.TF;
             client.UseSystemTextJson();
+            // client.UseNewtonsoftJson();
         }
 
         string CollectionName {get => isTFVector ? "tf" : "histogram";}
@@ -91,20 +92,23 @@ namespace Database
 
         public async Task<List<RetriveImg>> Search(ImageVector vec, int topk)
         {
+
+            var json = new {
+                    search = new ReqSearch { topk = topk, vectors = new float[][]{vec.Values}, @params = new { nprobe = 300 } }
+                };
             var req = new RestRequest($"{Milvus_URL}/collections/{CollectionName}/vectors")
-                .AddJsonBody(new {
-                    search = new ReqSearch { topk = topk, vectors = new float[][]{vec.Values} }
-                });
-            
+                .AddJsonBody(json);
+                
+            req.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
+
             var res = await client.PutAsync<ResSearch>(req);
-            Console.WriteLine(res.num);
             var list = new List<RetriveImg>();
             if (res.num == 0)
             {
                 return list;
             }
             var db = conn.GetDatabase();
-            await Task.WhenAll(res.results[0].Select(item => Task.Run(async () => {
+            await Task.WhenAll(res.result[0].Select(item => Task.Run(async () => {
                 var path = await db.StringGetAsync(item.id);
                 lock (lockObj)
                 {

@@ -4,3 +4,5 @@
 /obj
 /*.csv
 *.zip
+node_modules/
+build/
