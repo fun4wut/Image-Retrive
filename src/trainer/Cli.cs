@@ -4,7 +4,8 @@ using System.IO;
 using Preprocess;
 using System.Threading.Tasks;
 using Database;
-namespace img_search
+
+namespace Trainer
 {
     class Program
     {
