@@ -3,12 +3,14 @@ version: "3"
 services: 
     redis:
         image: redis
+        container_name: my-redis
         ports: 
             - "6379:6379"
         volumes: 
             - ~/redis/data:/data
     milvus:
         image: milvusdb/milvus:0.9.1-cpu-d052920-e04ed5
+        container_name: my-milvus
         ports: 
             - "19530:19530"
             - "19121:19121"

@@ -43,6 +43,11 @@ namespace Preprocess
                 ));
             }
         }
+
+        void Clear()
+        {
+            TotalList.Clear();
+        }
         // void Write2DB();
     }
 

@@ -3,22 +3,15 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using RestSharp;
-using Dto;
+using RpcDto;
 using Preprocess;
 using StackExchange.Redis;
 using RestSharp.Serializers.SystemTextJson;
-using System.Text.Json;
+
+
 namespace Database
 {
-    public enum VectorType { Histogram, TF }
-
-    public class RetriveImg
-    {
-        public string id {get; set;}
-        public string path {get; set;}
-        public string distance {get; set;}
-    }
-    public class DBOperator
+    public class DBOperator : IDBOperator
     {
         RestClient client = new RestClient();
         string Milvus_URL = "http://127.0.0.1:19121";
@@ -31,12 +24,13 @@ namespace Database
         {
             this.isTFVector = vecType == VectorType.TF;
             client.UseSystemTextJson();
-            // client.UseNewtonsoftJson();
         }
 
         string CollectionName {get => isTFVector ? "tf" : "histogram";}
 
         int Dimension {get => isTFVector ? 1008 : 80;}
+
+        public (int, int) CurrentProcess {get; set;}
 
         public async Task<bool> CheckExists()
         {
@@ -77,9 +71,14 @@ namespace Database
                     .AddJsonBody(new ReqInsertVector { vectors = vecs });
                 var res = await client.PostAsync<ResIds>(req);
                 var db = conn.GetDatabase();
+                CurrentProcess = (0, res.ids.Length);
                 // 插入至redis
                 await Task.WhenAll(vectors.Zip(res.ids).Select(item => Task.Run(async () => {
                     await db.StringSetAsync(item.Second, item.First.Name);
+                    lock (lockObj)
+                    {
+                        CurrentProcess = (CurrentProcess.Item1 + 1, CurrentProcess.Item2);
+                    }
                 })));
                 
             }

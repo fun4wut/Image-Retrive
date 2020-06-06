@@ -1,4 +1,4 @@
-namespace Dto
+namespace RpcDto
 {
     public class ReqCreateCollection 
     { 

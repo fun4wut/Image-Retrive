@@ -210,8 +210,8 @@ const Setting = (props: any) => {
       const { data, status } = res;
       if (status === 200) {
         const [_current, _total] = data
-          .split(",")
-          .map((item: any) => Number.parseInt(item.split(":")[1]));
+          .split("/")
+          .map((item: any) => Number.parseInt(item));
         setProcessedNum([_current, _total]);
         if (_current !== _total) {
           setTimeout(() => _keepProcess(), 1000);
