@@ -33,12 +33,10 @@ const SearchResults = props => {
   const { images = [] } = props;
   const [currentImage, setCurrentImage] = useState(0);
   const [viewerIsOpen, setViewerIsOpen] = useState(false);
-  const photos = images.map(img => {
-    return {
-      src: img[0],
-      distance: img[1]
-    };
-  });
+  const photos = images.map(item => ({
+    src: item.path.replace('assets', ''),
+    distance: item.distance,
+  }));
 
   const openLightbox = useCallback(index => {
     setCurrentImage(index);

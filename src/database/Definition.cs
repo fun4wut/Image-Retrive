@@ -10,7 +10,7 @@ namespace Database
     {
         public string id {get; set;}
         public string path {get; set;}
-        public string distance {get; set;}
+        public double distance {get; set;}
     }
 
     public interface IDBOperator
@@ -19,6 +19,7 @@ namespace Database
         Task CreateCollection();
         Task InsertVectors(List<ImageVector> vectors);
         Task<List<RetriveImg>> Search(ImageVector vec, int topk);
+        Task Clear();
         (int, int) CurrentProcess {get; set;}
     }
 }

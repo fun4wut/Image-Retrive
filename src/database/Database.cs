@@ -15,7 +15,7 @@ namespace Database
     {
         RestClient client = new RestClient();
         string Milvus_URL = "http://127.0.0.1:19121";
-        ConnectionMultiplexer conn = ConnectionMultiplexer.Connect("localhost");
+        ConnectionMultiplexer conn = ConnectionMultiplexer.Connect("localhost, allowAdmin=true");
 
         object lockObj = new object();
 
@@ -75,6 +75,7 @@ namespace Database
                 // 插入至redis
                 await Task.WhenAll(vectors.Zip(res.ids).Select(item => Task.Run(async () => {
                     await db.StringSetAsync(item.Second, item.First.Name);
+                    Console.WriteLine(item.First.Name);
                     lock (lockObj)
                     {
                         CurrentProcess = (CurrentProcess.Item1 + 1, CurrentProcess.Item2);
@@ -111,13 +112,19 @@ namespace Database
                 var path = await db.StringGetAsync(item.id);
                 lock (lockObj)
                 {
-                    list.Add(new RetriveImg { distance = item.distance, id = item.id, path = (string)path });
+                    list.Add(new RetriveImg { distance = double.Parse(item.distance), id = item.id, path = (string)path });
                 }
             })));
-
             return list;
         }
 
+        public async Task Clear()
+        {
+            var req = new RestRequest($"{Milvus_URL}/collections/{CollectionName}");
+            client.Delete(req); // 这里不能使用async，原因未知
+            await this.CreateCollection();
+            await conn.GetServer("localhost:6379").FlushDatabaseAsync();
+        }
 
     }
 }

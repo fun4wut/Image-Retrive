@@ -16,9 +16,6 @@ namespace Controller
     {
         private readonly IDBOperator _operator;
         private readonly IPreprocessable _preprocessor;
-
-        static string PWD = Environment.CurrentDirectory;
-
         Task currentTask;
 
         public MilvusController(IDBOperator @operator, IPreprocessable preprocessor)
@@ -27,25 +24,30 @@ namespace Controller
             _preprocessor = preprocessor;
         }
         
-        [HttpGet("search")]
-        public async Task<ActionResult<RetriveImg>> Search()
+        [HttpPost("search")]
+        public async Task<ActionResult<List<RetriveImg>>> Search([FromForm] int Num, [FromForm] IFormFile file)
         {
-            // IPreprocessable preprocessor = new HistogramPreprocessor();
-            // preprocessor.ProcessFolders(Directory.GetDirectories("assets"));
-            var single = _preprocessor.PreprocessSingle("assets/007.bat/007_0001.jpg");
+            // 先保存至磁盘，再加载出来
+            var filePath = Path.GetTempFileName();
+            Console.WriteLine(filePath);
+            using (var stream = System.IO.File.Create(filePath))
+            {
+                await file.CopyToAsync(stream);
+            }
+            var single = _preprocessor.PreprocessSingle(filePath);
             _preprocessor.TotalList.Add(single);
             _preprocessor.AfterAdd();
             // await _operator.InsertVectors(_preprocessor.TotalList);
 
-            var res = await _operator.Search(_preprocessor.TotalList[0], 10);
-            return res[0];
+            var res = await _operator.Search(_preprocessor.TotalList[0], Num);
+            return res;
         }
 
         [HttpPost("train")]
         public void Train(ReqTrain req)
         {
             _preprocessor.Clear();
-            _preprocessor.ProcessFolders(new string[]{Path.Combine(PWD, req.File)});
+            _preprocessor.ProcessFolders(new string[]{Path.Combine("assets", req.File)});
             _preprocessor.AfterAdd();
             // await _operator.InsertVectors(_preprocessor.TotalList);
             currentTask = Task.Run(async ()  => await _operator.InsertVectors(_preprocessor.TotalList));
@@ -59,12 +61,11 @@ namespace Controller
             return $"{cur}/{tot}";
         }
 
-        [HttpGet("count")]
-        [HttpPost("count")]
-        public int Count()
-        {
-            return _operator.CurrentProcess.Item2;
-        }
+        [HttpGet("count")][HttpPost("count")]
+        public int Count() => _operator.CurrentProcess.Item2;
+
+        [HttpPost("delete")]
+        public async Task ClearAll() => await _operator.Clear();
 
     }
 }
