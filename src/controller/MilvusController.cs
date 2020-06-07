@@ -18,6 +18,7 @@ namespace Controller
         private readonly IPreprocessable _preprocessor;
         Task currentTask;
 
+        // 依赖注入
         public MilvusController(IDBOperator @operator, IPreprocessable preprocessor)
         {
             _operator = @operator;
