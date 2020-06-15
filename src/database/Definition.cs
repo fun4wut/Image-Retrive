@@ -17,6 +17,7 @@ namespace Database
     {
         Task<bool> CheckExists();
         Task CreateCollection();
+        Task UpdateCollection();
         Task InsertVectors(List<ImageVector> vectors);
         Task<List<RetriveImg>> Search(ImageVector vec, int topk);
         Task Clear();

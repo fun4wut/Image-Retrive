@@ -30,6 +30,7 @@ namespace Server
                 if (await dbOperator.CheckExists())
                 {
                     await dbOperator.CreateCollection();
+                    await dbOperator.UpdateCollection();
                 }
             });
 

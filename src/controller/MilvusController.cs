@@ -35,6 +35,7 @@ namespace Controller
             {
                 await file.CopyToAsync(stream);
             }
+            _preprocessor.Clear();
             var single = _preprocessor.PreprocessSingle(filePath);
             _preprocessor.TotalList.Add(single);
             _preprocessor.AfterAdd();

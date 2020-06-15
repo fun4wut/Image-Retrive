@@ -28,7 +28,7 @@ namespace Database
 
         string CollectionName {get => isTFVector ? "tf" : "histogram";}
 
-        int Dimension {get => isTFVector ? 1008 : 80;}
+        int Dimension {get => isTFVector ? 1001 : 80;}
 
         public (int, int) CurrentProcess {get; set;}
 
@@ -60,6 +60,17 @@ namespace Database
                 Console.WriteLine($"Error occured: {e}");
                 throw;
             }
+        }
+
+        public async Task UpdateCollection()
+        {
+
+            var req = new RestRequest($"{Milvus_URL}/collections/{CollectionName}/indexes")
+                .AddJsonBody(new { index_type = "IVFFLAT", @params = new { nlist = 2048, nprobe = 64 } });
+            
+            req.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
+
+            await client.PostAsync<ResBase>(req);
         }
 
         public async Task InsertVectors(List<ImageVector> vectors)
@@ -123,6 +134,7 @@ namespace Database
             var req = new RestRequest($"{Milvus_URL}/collections/{CollectionName}");
             client.Delete(req); // 这里不能使用async，原因未知
             await this.CreateCollection();
+            await this.UpdateCollection();
             await conn.GetServer("localhost:6379").FlushDatabaseAsync();
         }
 

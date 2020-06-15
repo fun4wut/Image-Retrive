@@ -265,7 +265,7 @@ const Setting = (props: any) => {
   return (
     <div className={classes.setting}>
       <div className={classes.header}>
-        <img src={Logo} width="150px" alt="logo" />
+        <img src={"https://create-react-app.dev/img/logo.svg"} width="100px" alt="logo" />
         <p>Image Search Demo</p>
       </div>
       <div className={classes.configHead}>

@@ -12,8 +12,8 @@ namespace Preprocess
     public class TFPreprocessor : IPreprocessable
     {
         static string PWD = Environment.CurrentDirectory;
-        static string PB_PATH = "inception5h/tensorflow_inception_graph.pb";
-        static string SOFT2_NAME = "softmax2_pre_activation";
+        static string PB_PATH = "inception5h/inception_v3_2016_08_28_frozen.pb";
+        static string SOFT2_NAME = "InceptionV3/Predictions/Reshape";
         private static MLContext mlCtx = new MLContext();
         List<ImageVector> totalList = new List<ImageVector>(40000);
         public List<ImageVector> TotalList { get => totalList;}
@@ -28,12 +28,13 @@ namespace Preprocess
                 .Append(mlCtx.Transforms.ExtractPixels(
                     "input", 
                     interleavePixelColors: InceptionSettings.ChannelsLast, 
-                    offsetImage: InceptionSettings.Mean
+                    offsetImage: InceptionSettings.Mean,
+                    scaleImage: InceptionSettings.Scale
                 ))
                 .Append(mlCtx.Model.LoadTensorFlowModel(PB_PATH).ScoreTensorFlowModel(
                     outputColumnName: SOFT2_NAME,
                     inputColumnName: "input",
-                    addBatchDimensionInput: true
+                    addBatchDimensionInput: false
                 ));
         }
 
@@ -46,17 +47,16 @@ namespace Preprocess
             var transformed = model.Transform(data);
 
             totalList = mlCtx.Data.CreateEnumerable<ImageVector>(transformed, reuseRowObject: false).ToList();
-            
         }
 
         public ImageVector PreprocessSingle(string path) => new ImageVector { Name = path, Values = new float[]{} };
 
         private struct InceptionSettings
         {
-            public const int ImageHeight = 224;
-            public const int ImageWidth = 224;
+            public const int ImageHeight = 299;
+            public const int ImageWidth = 299;
             public const float Mean = 117;
-            public const float Scale = 1;
+            public const float Scale = 1/255f;
             public const bool ChannelsLast = true;
         }
     }

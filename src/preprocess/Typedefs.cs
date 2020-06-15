@@ -10,7 +10,7 @@ namespace Preprocess
     {
         public string Name {get;set;}
         [ColumnName("Label")] public string Category = "None";
-        [ColumnName("softmax2_pre_activation")][VectorType(1008)] public float[] Values {get; set;}
+        [ColumnName("InceptionV3/Predictions/Reshape")][VectorType(1008)] public float[] Values {get; set;}
     }
 
     public interface IPreprocessable
